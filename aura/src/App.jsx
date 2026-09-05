@@ -1,7 +1,12 @@
 import Patients from "./pages/caregiver/Patients";
 import Analytics from "./pages/caregiver/Analytics";
-
-import React, { useState, useEffect } from "react";
+import Rhythm from "./pages/caregiver/Rhythm";
+import Vault from "./pages/caregiver/Vault";
+import Reminders from "./pages/caregiver/Reminders";
+import React, { useState } from "react";
+import FamilySocial from "./pages/caregiver/FamilySocial";
+import Safety from "./pages/caregiver/Safety";
+import CaregiverAuth from "./pages/caregiver/CaregiverAuth";
 import {
   Home,
   Brain,
@@ -26,14 +31,18 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
+import Alerts from "./pages/caregiver/Alerts";
 
 export default function AuraApp() {
   // Navigation State
   // Views: 'landing', 'patient-dashboard', 'patient-activities', 'patient-game', 'patient-family',
   //        'caregiver-overview', 'caregiver-patient', 'caregiver-rhythm', 'caregiver-alerts'
   const [currentView, setCurrentView] = useState("landing");
+
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginRole, setLoginRole] = useState("patient");
+
+ const [loggedInCaregiver, setLoggedInCaregiver] = useState(null);
 
   // Interactive Memory Game State
   const initialCards = [
@@ -100,16 +109,18 @@ export default function AuraApp() {
       {/* LOGIN MODAL */}
       {isLoginOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative">
             <button
               onClick={() => setIsLoginOpen(false)}
               className="absolute top-6 right-6 text-gray-400 hover:text-gray-700"
             >
               <X size={20} />
             </button>
+
             <h2 className="text-2xl font-bold text-[#0f3e3a] mb-2">
               Welcome to AURA
             </h2>
+
             <p className="text-sm text-gray-500 mb-6">
               Select your portal to continue
             </p>
@@ -126,6 +137,7 @@ export default function AuraApp() {
               >
                 Patient
               </button>
+
               <button
                 type="button"
                 onClick={() => setLoginRole("caregiver")}
@@ -139,59 +151,95 @@ export default function AuraApp() {
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  {loginRole === "patient"
-                    ? "Patient ID or Family PIN"
-                    : "Work Email"}
-                </label>
-                <input
-                  type="text"
-                  placeholder={
-                    loginRole === "patient"
-                      ? "e.g., ASHA-8204"
-                      : "sarah.jenkins@hospital.org"
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0f3e3a]"
-                />
+            {loginRole === "patient" ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Patient ID or Family PIN
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="e.g., ASHA-8204"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0f3e3a]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Password
+                  </label>
+
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0f3e3a]"
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    setIsLoginOpen(false);
+                    setCurrentView("patient-dashboard");
+                  }}
+                  className="w-full py-3.5 bg-[#0f3e3a] text-white font-semibold rounded-xl hover:bg-[#0c312e] transition shadow-md"
+                >
+                  Log In as Patient
+                </button>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0f3e3a]"
-                />
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4">
+                  <p className="text-sm font-semibold text-[#0f3e3a]">
+                    Caregiver authentication
+                  </p>
+
+                  <p className="text-xs text-gray-500 mt-1">
+                    Login with your caregiver account to continue.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                 onClick={() => {
+  setIsLoginOpen(false);
+  setCurrentView("caregiver-login");
+}}
+                  className="w-full py-3.5 bg-[#0f3e3a] text-white font-semibold rounded-xl hover:bg-[#0c312e] transition shadow-md"
+                >
+                  Continue to Caregiver Login
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  setIsLoginOpen(false);
-                  setCurrentView(
-                    loginRole === "patient"
-                      ? "patient-dashboard"
-                      : "caregiver-overview",
-                  );
-                }}
-                className="w-full py-3.5 bg-[#0f3e3a] text-white font-semibold rounded-xl hover:bg-[#0c312e] transition shadow-md"
-              >
-                Log In as {loginRole === "patient" ? "Patient" : "Caregiver"}
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* RENDER DYNAMIC SCREENS */}
+      {/* DYNAMIC SCREENS */}
+      {currentView === "caregiver-login" && (
+  <CaregiverAuth
+    onBack={() => {
+      setCurrentView("landing");
+    }}
+    onSarahLogin={(caregiver) => {
+      setLoggedInCaregiver(caregiver);
+      setCurrentView("caregiver-overview");
+    }}
+  />
+)}
       <main>
-        {currentView === "landing" && (
-          <LandingView
-            onOpenPatient={() => setCurrentView("patient-dashboard")}
-            onOpenCaregiver={() => setCurrentView("caregiver-overview")}
-          />
-        )}
+       {currentView === "landing" && (
+  <LandingView
+  onOpenPatient={() => {
+    setIsLoginOpen(false);
+    setCurrentView("patient-dashboard");
+  }}
+  onOpenCaregiver={() => {
+    setIsLoginOpen(false);
+    setCurrentView("caregiver-login");
+  }}
+/>
+)}
 
         {/* PATIENT INTERFACES */}
         {currentView.startsWith("patient") && (
@@ -221,11 +269,13 @@ export default function AuraApp() {
         )}
 
         {/* CAREGIVER INTERFACES */}
-        {currentView.startsWith("caregiver") && (
-          <CaregiverLayout
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-          >
+        {currentView.startsWith("caregiver") &&
+  currentView !== "caregiver-login" && (
+    <CaregiverLayout
+      currentView={currentView}
+      setCurrentView={setCurrentView}
+      caregiver={loggedInCaregiver}
+    >
             {currentView === "caregiver-patients" && <Patients />}
 
             {currentView === "caregiver-analytics" && <Analytics />}
@@ -233,14 +283,33 @@ export default function AuraApp() {
             {currentView === "caregiver-overview" && (
               <CaregiverOverviewView setCurrentView={setCurrentView} />
             )}
+
             {currentView === "caregiver-patient" && (
               <CaregiverPatientDetailView setCurrentView={setCurrentView} />
             )}
+
             {currentView === "caregiver-rhythm" && (
-              <CaregiverRhythmView setCurrentView={setCurrentView} />
+              <Rhythm setCurrentView={setCurrentView} />
             )}
+
             {currentView === "caregiver-alerts" && (
-              <CaregiverAlertsView setCurrentView={setCurrentView} />
+              <Alerts setCurrentView={setCurrentView} />
+            )}
+
+            {currentView === "caregiver-vault" && (
+              <Vault setCurrentView={setCurrentView} />
+            )}
+
+            {currentView === "caregiver-reminders" && (
+              <Reminders setCurrentView={setCurrentView} />
+            )}
+
+            {currentView === "caregiver-family" && (
+              <FamilySocial setCurrentView={setCurrentView} />
+            )}
+
+            {currentView === "caregiver-safety" && (
+              <Safety setCurrentView={setCurrentView} />
             )}
           </CaregiverLayout>
         )}
@@ -255,16 +324,20 @@ export default function AuraApp() {
 function LandingView({ onOpenPatient, onOpenCaregiver }) {
   return (
     <div className="pb-24">
+
       {/* Hero Section */}
       <section className="relative h-[80vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden bg-gradient-to-b from-stone-100/60 to-white">
+
         <div className="max-w-2xl mx-auto space-y-4 z-10">
           <h1 className="text-4xl sm:text-5xl font-extrabold text-[#0f3e3a] tracking-tight">
             Care that remembers.
           </h1>
+
           <p className="text-base sm:text-lg text-gray-600 font-light">
             AI-powered cognitive assistance for elderly care.
           </p>
         </div>
+
         <div className="absolute bottom-10 flex flex-col items-center text-xs text-gray-400 tracking-widest uppercase gap-2">
           <span>Scroll to explore</span>
           <span className="animate-bounce">↓</span>
@@ -273,8 +346,12 @@ function LandingView({ onOpenPatient, onOpenCaregiver }) {
 
       {/* About Section */}
       <section className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
         <div>
-          <h2 className="text-xl font-bold text-[#0f3e3a] mb-2">About AURA</h2>
+          <h2 className="text-xl font-bold text-[#0f3e3a] mb-2">
+            About AURA
+          </h2>
+
           <p className="text-sm text-gray-600 max-w-xl">
             A sanctuary of support, engineered with empathetic professionalism.
             We bridge the gap between clinical precision and accessible warmth.
@@ -282,96 +359,130 @@ function LandingView({ onOpenPatient, onOpenCaregiver }) {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm flex flex-col justify-between">
+
+          {/* AI */}
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
             <div className="space-y-4">
+
               <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[#0f3e3a]">
                 <Brain size={20} />
               </div>
+
               <h3 className="font-bold text-lg text-gray-900">
                 AI Personalization
               </h3>
+
               <p className="text-xs text-gray-500 leading-relaxed">
                 Adaptive algorithms learn daily routines and cognitive patterns,
                 tailoring gentle interventions that feel natural, never
                 intrusive. The system evolves with the patient.
               </p>
+
             </div>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm space-y-4">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[#0f3e3a]">
-              <UserCheck size={20} />
+          {/* NER */}
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+            <div className="space-y-4">
+
+              <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[#0f3e3a]">
+                <UserCheck size={20} />
+              </div>
+
+              <h3 className="font-bold text-lg text-gray-900">
+                NER Accessibility
+              </h3>
+
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Built on a Fixed Grid model to reduce cognitive load:
+                high-contrast interfaces, massive touch targets, and tonal
+                layering ensure predictable navigation for visual and motor
+                impairments.
+              </p>
+
             </div>
-            <h3 className="font-bold text-lg text-gray-900">
-              NER Accessibility
-            </h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
-              Built on a Fixed Grid model to reduce cognitive load:
-              high-contrast interfaces, massive touch targets, and tonal
-              layering ensure predictable navigation for visual and motor
-              impairments.
-            </p>
           </div>
+
         </div>
 
-        {/* How It Works Card */}
+        {/* How it works */}
         <div className="bg-[#0f3e3a] text-white p-8 md:p-12 rounded-3xl space-y-8">
+
           <div className="flex items-center space-x-2 text-teal-200 text-sm font-semibold">
             <Activity size={18} />
             <span>How it Works</span>
           </div>
+
           <p className="text-base md:text-lg text-teal-50 max-w-2xl font-light">
             AURA seamlessly connects an intuitive patient terminal with a
             powerful, data-rich caregiver dashboard. Continuous monitoring
             translates into actionable insights, ensuring safety without
             sacrificing dignity.
           </p>
+
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-teal-800/60 text-xs">
+
             <div>
               <p className="font-bold">Observe</p>
-              <p className="text-teal-200/70">Ambient data collection</p>
+              <p className="text-teal-200/70">
+                Ambient data collection
+              </p>
             </div>
+
             <div>
               <p className="font-bold">Analyze</p>
-              <p className="text-teal-200/70">Pattern recognition</p>
+              <p className="text-teal-200/70">
+                Pattern recognition
+              </p>
             </div>
+
             <div>
               <p className="font-bold">Support</p>
-              <p className="text-teal-200/70">Timely, gentle cues</p>
+              <p className="text-teal-200/70">
+                Timely, gentle cues
+              </p>
             </div>
+
           </div>
         </div>
 
         {/* Entry Portals */}
         <div className="grid md:grid-cols-2 gap-6 pt-4">
+
+          {/* PATIENT */}
           <button
+            type="button"
             onClick={onOpenPatient}
             className="group text-left p-8 rounded-3xl bg-[#0f3e3a] text-white hover:bg-[#124b46] transition flex flex-col justify-between h-48 shadow-lg"
           >
-            <h4 className="text-xl font-semibold">Continue as Patient</h4>
+            <h4 className="text-xl font-semibold">
+              Continue as Patient
+            </h4>
+
             <div className="flex items-center space-x-2 text-xs text-teal-200 font-medium">
               <span>ENTER PORTAL</span>
-              <ArrowRight
-                size={14}
-                className="group-hover:translate-x-1 transition"
-              />
+              <ArrowRight size={14} />
             </div>
           </button>
 
+          {/* CAREGIVER */}
           <button
+            type="button"
             onClick={onOpenCaregiver}
             className="group text-left p-8 rounded-3xl bg-gray-200/70 text-gray-900 hover:bg-gray-300/70 transition flex flex-col justify-between h-48"
           >
-            <h4 className="text-xl font-semibold">Continue as Caregiver</h4>
+            <h4 className="text-xl font-semibold">
+              Continue as Caregiver
+            </h4>
+
             <div className="flex items-center space-x-2 text-xs text-gray-600 font-medium">
-              <span>ACCESS DASHBOARD</span>
-              <ArrowRight
-                size={14}
-                className="group-hover:translate-x-1 transition"
-              />
+              <span>ACCESS LOGIN</span>
+              <ArrowRight size={14} />
             </div>
           </button>
+
         </div>
+
       </section>
     </div>
   );
@@ -840,14 +951,17 @@ function PatientFamilyMemoriesView() {
 /* ==========================================================================
    3. CAREGIVER DASHBOARD LAYOUT & VIEWS
    ========================================================================== */
-function CaregiverLayout({ children, currentView, setCurrentView }) {
+function CaregiverLayout({ children, currentView, setCurrentView, caregiver }) {
   const menuItems = [
     { label: "Overview", view: "caregiver-overview", icon: Home },
     { label: "Patients", view: "caregiver-patients", icon: UserCheck },
     { label: "Analytics", view: "caregiver-analytics", icon: Activity },
     { label: "Rhythm", view: "caregiver-rhythm", icon: Brain },
-    { label: "Vault", view: "caregiver-patient", icon: Calendar },
+    { label: "Vault", view: "caregiver-vault", icon: Calendar },
     { label: "Alerts", view: "caregiver-alerts", icon: Bell },
+    { label: "Reminders", view: "caregiver-reminders", icon: Bell },
+    { label: "Safety", view: "caregiver-safety", icon: ShieldAlert },
+    { label: "Family & Social", view: "caregiver-family", icon: Heart },
   ];
 
   return (
@@ -889,7 +1003,9 @@ function CaregiverLayout({ children, currentView, setCurrentView }) {
             SJ
           </div>
           <div>
-            <p className="font-bold text-gray-800">Dr. Sarah Jenkins</p>
+            <p className="font-bold text-gray-800">
+              {caregiver?.name || "Sarah Jenkins"}
+            </p>
             <p className="text-gray-400">Settings</p>
           </div>
         </div>
@@ -1220,105 +1336,6 @@ function CaregiverRhythmView() {
             <p className="text-[10px] text-gray-500">Emotional connection</p>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function CaregiverAlertsView() {
-  const alerts = [
-    {
-      name: "Eleanor Vance",
-      room: "Rm 402 - East Wing",
-      time: "Just Now",
-      desc: "SOS Button Triggered",
-      priority: "EMERGENCY",
-    },
-    {
-      name: "Arthur Pendelton",
-      room: "Rm 215 - West Wing",
-      time: "15 mins ago",
-      desc: "Missed Medication (Lisinopril)",
-      priority: "HIGH",
-    },
-    {
-      name: "Martha Thompson",
-      room: "At Home Care",
-      time: "1 hour ago",
-      desc: "Slower completion time on cognitive puzzle",
-      priority: "MEDIUM",
-    },
-    {
-      name: "Beatrice Clark",
-      room: "Rm 112 - North Wing",
-      time: "2 hours ago",
-      desc: "Wearable sensor battery at 15%",
-      priority: "LOW",
-    },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-black text-gray-900">Alert Center</h1>
-        <p className="text-xs text-gray-400 mt-1">
-          Monitor and respond to patient alerts across all active facilities.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-gray-50 text-gray-400 font-semibold border-b">
-            <tr>
-              <th className="p-4">PATIENT</th>
-              <th>TIME</th>
-              <th>ALERT DESCRIPTION</th>
-              <th>PRIORITY</th>
-              <th className="text-right p-4">ACTION</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {alerts.map((alt, i) => (
-              <tr
-                key={i}
-                className={alt.priority === "EMERGENCY" ? "bg-red-50/50" : ""}
-              >
-                <td className="p-4">
-                  <p className="font-bold text-gray-900">{alt.name}</p>
-                  <p className="text-[10px] text-gray-400">{alt.room}</p>
-                </td>
-                <td className="text-gray-500">{alt.time}</td>
-                <td className="font-semibold text-gray-800">{alt.desc}</td>
-                <td>
-                  <span
-                    className={`px-2 py-0.5 rounded font-bold text-[10px] ${
-                      alt.priority === "EMERGENCY"
-                        ? "bg-red-600 text-white"
-                        : alt.priority === "HIGH"
-                          ? "bg-orange-100 text-orange-700"
-                          : alt.priority === "MEDIUM"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {alt.priority}
-                  </span>
-                </td>
-                <td className="p-4 text-right">
-                  {alt.priority === "EMERGENCY" ? (
-                    <button className="bg-red-700 hover:bg-red-800 text-white font-bold px-4 py-1.5 rounded-xl">
-                      Respond
-                    </button>
-                  ) : (
-                    <button className="text-gray-400 hover:text-gray-700 font-bold px-2 py-1">
-                      •••
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );
