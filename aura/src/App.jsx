@@ -7,6 +7,8 @@ import React, { useState } from "react";
 import FamilySocial from "./pages/caregiver/FamilySocial";
 import Safety from "./pages/caregiver/Safety";
 import CaregiverAuth from "./pages/caregiver/CaregiverAuth";
+import FamilyMemory from "./pages/patient/FamilyMemory";
+import Mood from "./pages/patient/Mood";
 import {
   Home,
   Brain,
@@ -262,9 +264,13 @@ export default function AuraApp() {
                 setCurrentView={setCurrentView}
               />
             )}
-            {currentView === "patient-family" && (
-              <PatientFamilyMemoriesView setCurrentView={setCurrentView} />
-            )}
+           {currentView === "patient-family" && (
+  <FamilyMemory />
+)}
+
+{currentView === "patient-mood" && (
+  <Mood />
+)}
           </PatientLayout>
         )}
 
@@ -493,11 +499,12 @@ function LandingView({ onOpenPatient, onOpenCaregiver }) {
    ========================================================================== */
 function PatientLayout({ children, currentView, setCurrentView }) {
   const navItems = [
-    { label: "Home", view: "patient-dashboard", icon: Home },
-    { label: "Activities", view: "patient-activities", icon: Brain },
-    { label: "Memory", view: "patient-family", icon: Heart },
-    { label: "Reminders", view: "patient-dashboard", icon: Calendar },
-  ];
+  { label: "Home", view: "patient-dashboard", icon: Home },
+  { label: "Activities", view: "patient-activities", icon: Brain },
+  { label: "Memory", view: "patient-family", icon: Heart },
+  { label: "Mood", view: "patient-mood", icon: Heart },
+  { label: "Reminders", view: "patient-dashboard", icon: Calendar },
+];
 
   return (
     <div className="flex min-h-[calc(100vh-73px)]">
