@@ -3,17 +3,17 @@ import {
   Heart,
   Volume2,
   Play,
-  Pause,
   Mic,
   Star,
   Calendar,
   Users,
-  MapPin,
   X,
   CheckCircle2,
   RotateCcw,
   Plus,
   Sparkles,
+  ImagePlus,
+  Upload,
 } from "lucide-react";
 
 const initialMemories = [
@@ -22,7 +22,7 @@ const initialMemories = [
     title: "Priya",
     subtitle: "Daughter",
     category: "People",
-    emoji: "👩‍🦰",
+    image: "",
     description:
       "Priya is your daughter. She enjoys spending time with you and visiting on weekends.",
     year: "Family",
@@ -33,7 +33,7 @@ const initialMemories = [
     title: "Rahul",
     subtitle: "Grandson",
     category: "People",
-    emoji: "👦",
+    image: "",
     description:
       "Rahul is your grandson. You often enjoy talking and playing games together.",
     year: "Family",
@@ -44,7 +44,7 @@ const initialMemories = [
     title: "Family Celebration",
     subtitle: "A special family day",
     category: "Events",
-    emoji: "🎉",
+    image: "",
     description:
       "A happy family gathering filled with conversations, food and shared memories.",
     year: "2024",
@@ -55,7 +55,7 @@ const initialMemories = [
     title: "Morning Garden",
     subtitle: "A familiar place",
     category: "Places",
-    emoji: "🌳",
+    image: "",
     description:
       "A peaceful garden where you enjoyed spending quiet mornings.",
     year: "Childhood",
@@ -66,7 +66,7 @@ const initialMemories = [
     title: "Festival Memory",
     subtitle: "A familiar celebration",
     category: "Culture",
-    emoji: "🪔",
+    image: "",
     description:
       "A familiar festival memory involving family, traditional food and celebration.",
     year: "Family Tradition",
@@ -77,7 +77,7 @@ const initialMemories = [
     title: "Favourite Meal",
     subtitle: "A familiar food memory",
     category: "Culture",
-    emoji: "🍲",
+    image: "",
     description:
       "A favourite traditional meal often prepared during family gatherings.",
     year: "Family Tradition",
@@ -87,11 +87,7 @@ const initialMemories = [
 
 const categories = ["All", "People", "Places", "Events", "Culture"];
 
-const recallOptions = [
-  "Priya",
-  "Rahul",
-  "Anil",
-];
+const recallOptions = ["Priya", "Rahul", "Anil"];
 
 function speak(text) {
   if ("speechSynthesis" in window) {
@@ -105,6 +101,61 @@ function speak(text) {
   }
 }
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+
+    reader.readAsDataURL(file);
+  });
+}
+
+function ImageSlot({ image, onUpload, large = false }) {
+  return (
+    <label
+      className={`relative flex cursor-pointer items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 bg-stone-100 transition hover:border-[#0f3e3a] ${
+        large
+          ? "h-48 rounded-2xl"
+          : "h-44 rounded-3xl"
+      }`}
+    >
+      {image ? (
+        <img
+          src={image}
+          alt="Memory"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex flex-col items-center justify-center text-center text-gray-400">
+          <ImagePlus size={36} className="mb-2 text-[#0f3e3a]" />
+          <p className="text-sm font-bold text-gray-600">
+            Add Memory Photo
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Click to upload an image
+          </p>
+        </div>
+      )}
+
+      <div className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-md">
+        <Upload size={16} className="text-[#0f3e3a]" />
+      </div>
+
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+        }}
+      />
+    </label>
+  );
+}
+
 export default function FamilyMemory() {
   const [memories, setMemories] = useState(initialMemories);
   const [activeCategory, setActiveCategory] = useState("All");
@@ -114,6 +165,7 @@ export default function FamilyMemory() {
   const [newMemoryTitle, setNewMemoryTitle] = useState("");
   const [newMemorySubtitle, setNewMemorySubtitle] = useState("");
   const [newMemoryCategory, setNewMemoryCategory] = useState("People");
+  const [newMemoryImage, setNewMemoryImage] = useState("");
 
   const [recallMemory, setRecallMemory] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState("");
@@ -125,11 +177,13 @@ export default function FamilyMemory() {
     if (activeCategory === "All") return memories;
 
     return memories.filter(
-      (memory) => memory.category === activeCategory,
+      (memory) => memory.category === activeCategory
     );
   }, [memories, activeCategory]);
 
-  const favoriteMemories = memories.filter((memory) => memory.favorite);
+  const favoriteMemories = memories.filter(
+    (memory) => memory.favorite
+  );
 
   const memoryOfTheDay = memories[0];
 
@@ -138,9 +192,42 @@ export default function FamilyMemory() {
       current.map((memory) =>
         memory.id === id
           ? { ...memory, favorite: !memory.favorite }
-          : memory,
-      ),
+          : memory
+      )
     );
+  };
+
+  const updateMemoryImage = async (id, file) => {
+    try {
+      const imageData = await readFileAsDataUrl(file);
+
+      setMemories((current) =>
+        current.map((memory) =>
+          memory.id === id
+            ? { ...memory, image: imageData }
+            : memory
+        )
+      );
+
+      setSelectedMemory((current) =>
+        current && current.id === id
+          ? { ...current, image: imageData }
+          : current
+      );
+    } catch (error) {
+      console.error("Unable to upload image:", error);
+      alert("Unable to upload this image.");
+    }
+  };
+
+  const handleNewMemoryImage = async (file) => {
+    try {
+      const imageData = await readFileAsDataUrl(file);
+      setNewMemoryImage(imageData);
+    } catch (error) {
+      console.error("Unable to upload image:", error);
+      alert("Unable to upload this image.");
+    }
   };
 
   const addMemory = (event) => {
@@ -153,14 +240,7 @@ export default function FamilyMemory() {
       title: newMemoryTitle,
       subtitle: newMemorySubtitle || "Personal memory",
       category: newMemoryCategory,
-      emoji:
-        newMemoryCategory === "People"
-          ? "👤"
-          : newMemoryCategory === "Places"
-            ? "📍"
-            : newMemoryCategory === "Events"
-              ? "🎉"
-              : "🌿",
+      image: newMemoryImage,
       description: `A personal memory about ${newMemoryTitle}.`,
       year: "Personal",
       favorite: false,
@@ -171,16 +251,21 @@ export default function FamilyMemory() {
     setNewMemoryTitle("");
     setNewMemorySubtitle("");
     setNewMemoryCategory("People");
+    setNewMemoryImage("");
     setShowAddMemory(false);
   };
 
   const startRecallGame = () => {
     const personMemories = memories.filter(
-      (memory) => memory.category === "People",
+      (memory) => memory.category === "People"
     );
 
+    if (!personMemories.length) return;
+
     const randomMemory =
-      personMemories[Math.floor(Math.random() * personMemories.length)];
+      personMemories[
+        Math.floor(Math.random() * personMemories.length)
+      ];
 
     setRecallMemory(randomMemory);
     setSelectedAnswer("");
@@ -205,7 +290,8 @@ export default function FamilyMemory() {
       "webkitSpeechRecognition" in window
     ) {
       const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
       const recognition = new SpeechRecognition();
 
@@ -220,7 +306,7 @@ export default function FamilyMemory() {
           event.results[0][0].transcript.toLowerCase();
 
         const matchedOption = recallOptions.find((option) =>
-          spokenText.includes(option.toLowerCase()),
+          spokenText.includes(option.toLowerCase())
         );
 
         if (matchedOption) {
@@ -245,7 +331,6 @@ export default function FamilyMemory() {
 
   return (
     <div className="space-y-7 animate-in fade-in duration-300">
-
       {/* HEADER */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -277,8 +362,7 @@ export default function FamilyMemory() {
 
       {/* MEMORY OF THE DAY */}
       <section className="overflow-hidden rounded-3xl border border-teal-100 bg-gradient-to-r from-teal-50 to-white p-6">
-        <div className="grid gap-6 md:grid-cols-[1fr_180px] md:items-center">
-
+        <div className="grid gap-6 md:grid-cols-[1fr_220px] md:items-center">
           <div>
             <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0f3e3a]">
               <Sparkles size={15} />
@@ -301,7 +385,7 @@ export default function FamilyMemory() {
               <button
                 onClick={() =>
                   speak(
-                    `${memoryOfTheDay.title}. ${memoryOfTheDay.description}`,
+                    `${memoryOfTheDay.title}. ${memoryOfTheDay.description}`
                   )
                 }
                 className="flex items-center gap-2 rounded-xl bg-[#0f3e3a] px-4 py-2.5 text-xs font-bold text-white"
@@ -319,10 +403,13 @@ export default function FamilyMemory() {
             </div>
           </div>
 
-          <div className="flex h-40 items-center justify-center rounded-2xl bg-amber-100 text-7xl">
-            {memoryOfTheDay.emoji}
-          </div>
-
+          <ImageSlot
+            image={memoryOfTheDay.image}
+            large
+            onUpload={(file) =>
+              updateMemoryImage(memoryOfTheDay.id, file)
+            }
+          />
         </div>
       </section>
 
@@ -350,8 +437,9 @@ export default function FamilyMemory() {
             <h2 className="text-lg font-black text-gray-900">
               Your Memories
             </h2>
+
             <p className="text-xs text-gray-400">
-              Choose a memory to explore.
+              Add real photos to make memories more meaningful.
             </p>
           </div>
 
@@ -361,34 +449,19 @@ export default function FamilyMemory() {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-
           {filteredMemories.map((memory) => (
             <div
               key={memory.id}
               className="group overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
-              <div className="relative flex h-44 items-center justify-center bg-stone-100 text-6xl">
-                {memory.emoji}
-
-                <button
-                  onClick={() => toggleFavorite(memory.id)}
-                  className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-sm"
-                  aria-label="Favorite memory"
-                >
-                  <Star
-                    size={17}
-                    className={
-                      memory.favorite
-                        ? "text-amber-500"
-                        : "text-gray-400"
-                    }
-                    fill={memory.favorite ? "currentColor" : "none"}
-                  />
-                </button>
-              </div>
+              <ImageSlot
+                image={memory.image}
+                onUpload={(file) =>
+                  updateMemoryImage(memory.id, file)
+                }
+              />
 
               <div className="space-y-3 p-5">
-
                 <div>
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="font-black text-gray-900">
@@ -414,9 +487,29 @@ export default function FamilyMemory() {
                   </button>
 
                   <button
+                    onClick={() => toggleFavorite(memory.id)}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50"
+                    aria-label="Favorite memory"
+                  >
+                    <Star
+                      size={16}
+                      className={
+                        memory.favorite
+                          ? "text-amber-500"
+                          : "text-gray-400"
+                      }
+                      fill={
+                        memory.favorite
+                          ? "currentColor"
+                          : "none"
+                      }
+                    />
+                  </button>
+
+                  <button
                     onClick={() =>
                       speak(
-                        `${memory.title}. ${memory.description}`,
+                        `${memory.title}. ${memory.description}`
                       )
                     }
                     className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-[#0f3e3a] hover:bg-gray-50"
@@ -424,21 +517,18 @@ export default function FamilyMemory() {
                     <Volume2 size={16} />
                   </button>
                 </div>
-
               </div>
             </div>
           ))}
-
         </div>
       </section>
 
       {/* FAVORITES + TIMELINE */}
       <div className="grid gap-5 lg:grid-cols-2">
-
-        {/* FAVORITES */}
         <section className="rounded-3xl border border-gray-200 bg-white p-6">
           <div className="mb-5 flex items-center gap-2">
             <Star size={18} className="text-amber-500" />
+
             <h2 className="font-black text-gray-900">
               Favorite Memories
             </h2>
@@ -452,14 +542,28 @@ export default function FamilyMemory() {
                   onClick={() => setSelectedMemory(memory)}
                   className="flex w-full items-center gap-3 rounded-2xl bg-gray-50 p-3 text-left hover:bg-gray-100"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-2xl">
-                    {memory.emoji}
+                  <div className="h-12 w-12 overflow-hidden rounded-xl bg-white">
+                    {memory.image ? (
+                      <img
+                        src={memory.image}
+                        alt={memory.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <ImagePlus
+                          size={19}
+                          className="text-[#0f3e3a]"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div>
                     <p className="text-sm font-bold text-gray-800">
                       {memory.title}
                     </p>
+
                     <p className="text-xs text-gray-400">
                       {memory.subtitle}
                     </p>
@@ -474,10 +578,10 @@ export default function FamilyMemory() {
           </div>
         </section>
 
-        {/* TIMELINE */}
         <section className="rounded-3xl border border-gray-200 bg-white p-6">
           <div className="mb-5 flex items-center gap-2">
             <Calendar size={18} className="text-[#0f3e3a]" />
+
             <h2 className="font-black text-gray-900">
               Memory Timeline
             </h2>
@@ -501,6 +605,7 @@ export default function FamilyMemory() {
                   <p className="text-xs font-bold text-[#0f3e3a]">
                     {memory.year}
                   </p>
+
                   <p className="mt-1 text-sm font-bold text-gray-800">
                     {memory.title}
                   </p>
@@ -509,12 +614,10 @@ export default function FamilyMemory() {
             ))}
           </div>
         </section>
-
       </div>
 
       {/* RECALL GAME */}
       <section className="rounded-3xl border border-teal-100 bg-teal-50/60 p-6">
-
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -541,9 +644,14 @@ export default function FamilyMemory() {
 
         {recallMemory && (
           <div className="mt-6 rounded-2xl bg-white p-5">
-
-            <div className="mb-5 flex h-32 items-center justify-center rounded-2xl bg-stone-100 text-6xl">
-              {recallMemory.emoji}
+            <div className="mb-5">
+              <ImageSlot
+                image={recallMemory.image}
+                large
+                onUpload={(file) =>
+                  updateMemoryImage(recallMemory.id, file)
+                }
+              />
             </div>
 
             <p className="mb-3 text-center text-sm font-bold text-gray-800">
@@ -567,7 +675,6 @@ export default function FamilyMemory() {
             </div>
 
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-
               <button
                 onClick={handleVoiceAnswer}
                 className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-xs font-bold"
@@ -593,7 +700,6 @@ export default function FamilyMemory() {
                 <RotateCcw size={14} />
                 New
               </button>
-
             </div>
 
             {recallResult === "correct" && (
@@ -609,7 +715,6 @@ export default function FamilyMemory() {
                 <strong>{recallMemory.title}</strong>.
               </div>
             )}
-
           </div>
         )}
       </section>
@@ -617,19 +722,21 @@ export default function FamilyMemory() {
       {/* MEMORY MODAL */}
       {selectedMemory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-
           <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-7 shadow-2xl">
-
             <button
               onClick={() => setSelectedMemory(null)}
-              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow hover:bg-gray-100"
             >
               <X size={18} />
             </button>
 
-            <div className="flex h-48 items-center justify-center rounded-2xl bg-stone-100 text-8xl">
-              {selectedMemory.emoji}
-            </div>
+            <ImageSlot
+              image={selectedMemory.image}
+              large
+              onUpload={(file) =>
+                updateMemoryImage(selectedMemory.id, file)
+              }
+            />
 
             <div className="mt-5">
               <div className="flex items-center justify-between gap-3">
@@ -669,7 +776,7 @@ export default function FamilyMemory() {
               <button
                 onClick={() =>
                   speak(
-                    `${selectedMemory.title}. ${selectedMemory.description}`,
+                    `${selectedMemory.title}. ${selectedMemory.description}`
                   )
                 }
                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#0f3e3a] py-3 text-sm font-bold text-white"
@@ -678,7 +785,6 @@ export default function FamilyMemory() {
                 Listen to Memory
               </button>
             </div>
-
           </div>
         </div>
       )}
@@ -686,12 +792,10 @@ export default function FamilyMemory() {
       {/* ADD MEMORY MODAL */}
       {showAddMemory && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-
           <form
             onSubmit={addMemory}
             className="relative w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl"
           >
-
             <button
               type="button"
               onClick={() => setShowAddMemory(false)}
@@ -705,10 +809,15 @@ export default function FamilyMemory() {
             </h2>
 
             <p className="mt-1 text-xs text-gray-400">
-              Create a familiar memory for the patient.
+              Add a photo and details for a familiar memory.
             </p>
 
             <div className="mt-6 space-y-4">
+              <ImageSlot
+                image={newMemoryImage}
+                large
+                onUpload={handleNewMemoryImage}
+              />
 
               <input
                 value={newMemoryTitle}
@@ -750,7 +859,6 @@ export default function FamilyMemory() {
               >
                 Save Memory
               </button>
-
             </div>
           </form>
         </div>

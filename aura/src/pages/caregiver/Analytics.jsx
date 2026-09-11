@@ -139,7 +139,7 @@ function Analytics({ setCurrentView }) {
       <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
         <h2 className="mb-4 text-sm font-semibold text-slate-800">
-          Asha's AURA Workspace
+          Asha's SMRITI Workspace
         </h2>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -512,12 +512,12 @@ function Analytics({ setCurrentView }) {
           <div>
 
             <h2 className="font-semibold text-[#0f3e3a]">
-              AURA Recommendation
+              SMRITI Recommendation
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Asha is showing stable cognitive performance with
-              stronger memory than attention. AURA can maintain
+              stronger memory than attention. SMRITI can maintain
               moderate memory activities while gently supporting
               attention-focused tasks.
             </p>

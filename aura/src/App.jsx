@@ -9,6 +9,11 @@ import Safety from "./pages/caregiver/Safety";
 import CaregiverAuth from "./pages/caregiver/CaregiverAuth";
 import FamilyMemory from "./pages/patient/FamilyMemory";
 import Mood from "./pages/patient/Mood";
+import MemoryGame from "./pages/patient/MemoryGame";
+import GameResult from "./pages/patient/GameResult";
+import VoiceTest from "./components/VoiceTest";
+import Reminder from "./pages/patient/Reminder";
+import SmritiChat from "./components/SmritiChat";
 import {
   Home,
   Brain,
@@ -32,6 +37,9 @@ import {
   Filter,
   ChevronRight,
   X,
+  Gamepad2,
+  BarChart3,
+  Bot,
 } from "lucide-react";
 import Alerts from "./pages/caregiver/Alerts";
 
@@ -84,7 +92,7 @@ export default function AuraApp() {
           onClick={() => setCurrentView("landing")}
           className="text-2xl font-black tracking-wider text-[#0f3e3a] cursor-pointer"
         >
-          AURA
+          SMRITI
         </div>
         <nav className="flex items-center space-x-6 text-sm font-medium text-gray-600">
           <button
@@ -120,7 +128,7 @@ export default function AuraApp() {
             </button>
 
             <h2 className="text-2xl font-bold text-[#0f3e3a] mb-2">
-              Welcome to AURA
+              Welcome to SMRITI
             </h2>
 
             <p className="text-sm text-gray-500 mb-6">
@@ -230,18 +238,24 @@ export default function AuraApp() {
   />
 )}
       <main>
-       {currentView === "landing" && (
-  <LandingView
-  onOpenPatient={() => {
-    setIsLoginOpen(false);
-    setCurrentView("patient-dashboard");
-  }}
-  onOpenCaregiver={() => {
-    setIsLoginOpen(false);
-    setCurrentView("caregiver-login");
-  }}
-/>
-)}
+     
+  {currentView === "landing" && (
+    <LandingView
+     onOpenPatient={() => {
+  setIsLoginOpen(false);
+  setCurrentView("patient-dashboard");
+}}
+      onOpenCaregiver={() => {
+        setIsLoginOpen(false);
+        setCurrentView("caregiver-login");
+      }}
+    />
+  )}
+
+  {currentView === "voice-test" && (
+    <VoiceTest />
+  )}
+
 
         {/* PATIENT INTERFACES */}
         {currentView.startsWith("patient") && (
@@ -255,22 +269,26 @@ export default function AuraApp() {
             {currentView === "patient-activities" && (
               <PatientActivitiesView setCurrentView={setCurrentView} />
             )}
-            {currentView === "patient-game" && (
-              <PatientGameView
-                cards={cards}
-                handleCardClick={handleCardClick}
-                resetGame={resetGame}
-                gameComplete={gameComplete}
-                setCurrentView={setCurrentView}
-              />
-            )}
+           {currentView === "patient-game" && (
+  <MemoryGame setCurrentView={setCurrentView} />
+)}
+{currentView === "patient-game-result" && (
+  <GameResult setCurrentView={setCurrentView} />
+)}
            {currentView === "patient-family" && (
   <FamilyMemory />
+)}
+{currentView === "patient-reminders" && (
+  <Reminder />
+)}
+{currentView === "patient-smriti" && (
+  <SmritiChat />
 )}
 
 {currentView === "patient-mood" && (
   <Mood />
 )}
+
           </PatientLayout>
         )}
 
@@ -355,7 +373,7 @@ function LandingView({ onOpenPatient, onOpenCaregiver }) {
 
         <div>
           <h2 className="text-xl font-bold text-[#0f3e3a] mb-2">
-            About AURA
+            About SMRITI
           </h2>
 
           <p className="text-sm text-gray-600 max-w-xl">
@@ -420,7 +438,7 @@ function LandingView({ onOpenPatient, onOpenCaregiver }) {
           </div>
 
           <p className="text-base md:text-lg text-teal-50 max-w-2xl font-light">
-            AURA seamlessly connects an intuitive patient terminal with a
+            SMRITI seamlessly connects an intuitive patient terminal with a
             powerful, data-rich caregiver dashboard. Continuous monitoring
             translates into actionable insights, ensuring safety without
             sacrificing dignity.
@@ -499,12 +517,15 @@ function LandingView({ onOpenPatient, onOpenCaregiver }) {
    ========================================================================== */
 function PatientLayout({ children, currentView, setCurrentView }) {
   const navItems = [
-  { label: "Home", view: "patient-dashboard", icon: Home },
-  { label: "Activities", view: "patient-activities", icon: Brain },
-  { label: "Memory", view: "patient-family", icon: Heart },
-  { label: "Mood", view: "patient-mood", icon: Heart },
-  { label: "Reminders", view: "patient-dashboard", icon: Calendar },
-];
+    { label: "Home", view: "patient-dashboard", icon: Home },
+    { label: "Activities", view: "patient-activities", icon: Brain },
+    { label: "Memory Game", view: "patient-game", icon: Gamepad2 },
+    { label: "Game Results", view: "patient-game-result", icon: BarChart3 },
+    { label: "Memory", view: "patient-family", icon: Heart },
+    { label: "Mood", view: "patient-mood", icon: Heart },
+    { label: "Reminders", view: "patient-reminders", icon: Calendar },
+    { label: "Talk to Smriti", view: "patient-smriti", icon: Bot },
+  ];
 
   return (
     <div className="flex min-h-[calc(100vh-73px)]">
@@ -642,9 +663,12 @@ function PatientDashboardView({ setCurrentView }) {
 
       {/* Floating Bottom Patient Action Bar */}
       <div className="flex items-center space-x-4 pt-4">
-        <button className="flex-1 flex items-center justify-center space-x-3 bg-[#0f3e3a] text-white py-4 rounded-2xl font-bold hover:bg-[#0c312e] transition">
+        <button
+          onClick={() => setCurrentView("patient-smriti")}
+          className="flex-1 flex items-center justify-center space-x-3 bg-[#0f3e3a] text-white py-4 rounded-2xl font-bold hover:bg-[#0c312e] transition"
+        >
           <Mic size={20} />
-          <span>Talk to AURA</span>
+          <span>Talk to Smriti</span>
         </button>
         <button
           onClick={() => alert("EMERGENCY SOS SIGNAL SENT")}

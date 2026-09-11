@@ -452,7 +452,7 @@ function Alerts({ setCurrentView }) {
         </p>
 
         <p>
-          AURA Caregiver Portal
+          SMRITI Caregiver Portal
         </p>
       </div>
 

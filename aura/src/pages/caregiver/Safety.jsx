@@ -417,7 +417,7 @@ function Safety({ setCurrentView }) {
               </h2>
 
               <p className="mt-1 text-xs text-slate-400">
-                Configure the signals AURA should monitor.
+                Configure the signals SMRITI should monitor.
               </p>
             </div>
 

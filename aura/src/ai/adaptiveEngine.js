@@ -1,156 +1,129 @@
-// ============================================================
-// AURA ADAPTIVE ENGINE
-// ============================================================
-// This is the decision layer for Adaptive Cognitive Rhythm.
-//
-// CURRENT VERSION:
-// Rule-based baseline.
-//
-// FUTURE VERSION:
-// Replace this logic with an actual ML model/API.
-// Rhythm.jsx should NOT need major changes.
-// ============================================================
+const ACTIVITY_LEVELS = ["easy", "medium", "hard"];
 
-export function generateAdaptivePlan(patient) {
-  if (!patient) {
-    throw new Error("Patient data is required.");
+const ACTIVITIES = [
+  {
+    name: "Memory Game",
+    focus: "memory",
+    preferredCategories: ["People", "Culture"],
+  },
+  {
+    name: "Family Memory Recall",
+    focus: "memory",
+    preferredCategories: ["People"],
+  },
+  {
+    name: "Pattern Recognition",
+    focus: "attention",
+    preferredCategories: ["All"],
+  },
+  {
+    name: "Daily Routine",
+    focus: "sequencing",
+    preferredCategories: ["All"],
+  },
+];
+
+export function analyzePerformance(result, history = []) {
+  const accuracy = Number(result?.accuracy || 0);
+  const hints = Number(result?.hintsUsed || 0);
+  const time = Number(result?.elapsedTime || 0);
+
+  let performanceScore = accuracy;
+
+  // Small penalty for heavy hint dependence.
+  performanceScore -= hints * 5;
+
+  // Reward faster completion without making speed dominant.
+  if (time > 0 && time <= 40) {
+    performanceScore += 5;
+  } else if (time >= 90) {
+    performanceScore -= 5;
   }
 
-  const {
-    memory = 0,
-    attention = 0,
-    engagement = 0,
-    recentActivities = [],
-    bestTime = "10:00 AM",
-  } = patient;
+  performanceScore = Math.max(
+    0,
+    Math.min(100, Math.round(performanceScore))
+  );
 
-  // ----------------------------------------------------------
-  // 1. Find the strongest and weakest cognitive areas
-  // ----------------------------------------------------------
+  let performanceBand = "moderate";
 
-  const strongestArea =
-    memory >= attention ? "Memory" : "Attention";
-
-  const weakestArea =
-    memory < attention ? "Memory" : "Attention";
-
-  // ----------------------------------------------------------
-  // 2. Calculate recent average performance
-  // ----------------------------------------------------------
-
-  const recentScores = recentActivities
-    .map((activity) => activity.score)
-    .filter((score) => typeof score === "number");
-
-  const recentAverage =
-    recentScores.length > 0
-      ? Math.round(
-          recentScores.reduce((sum, score) => sum + score, 0) /
-            recentScores.length
-        )
-      : 0;
-
-  // ----------------------------------------------------------
-  // 3. Determine recommended difficulty
-  // ----------------------------------------------------------
-
-  let difficulty = "Easy";
-
-  if (
-    recentAverage >= 80 &&
-    engagement >= 80 &&
-    Math.min(memory, attention) >= 75
-  ) {
-    difficulty = "Medium";
+  if (performanceScore >= 80) {
+    performanceBand = "strong";
+  } else if (performanceScore < 60) {
+    performanceBand = "needs_support";
   }
-
-  if (
-    recentAverage >= 88 &&
-    engagement >= 90 &&
-    Math.min(memory, attention) >= 85
-  ) {
-    difficulty = "Hard";
-  }
-
-  // ----------------------------------------------------------
-  // 4. Choose activity based on weakest area
-  // ----------------------------------------------------------
-
-  let activityType = "Pattern Recognition";
-
-  if (weakestArea === "Attention") {
-    activityType = "Attention Match";
-  }
-
-  if (weakestArea === "Memory") {
-    activityType = "Memory Recall";
-  }
-
-  // ----------------------------------------------------------
-  // 5. Adapt based on engagement
-  // ----------------------------------------------------------
-
-  let assistanceLevel = "Standard";
-
-  if (engagement < 60) {
-    assistanceLevel = "High Assistance";
-  } else if (engagement < 75) {
-    assistanceLevel = "Gentle Assistance";
-  }
-
-  // ----------------------------------------------------------
-  // 6. Generate explanation
-  // ----------------------------------------------------------
-
-  let reason = "";
-
-  if (weakestArea === "Attention") {
-    reason =
-      `Attention (${attention}%) is currently lower than memory ` +
-      `(${memory}%). AURA is prioritizing an attention-focused ` +
-      `activity to gently support this area.`;
-  } else {
-    reason =
-      `Memory (${memory}%) is currently lower than attention ` +
-      `(${attention}%). AURA is prioritizing a memory-focused ` +
-      `activity to gently support this area.`;
-  }
-
-  // ----------------------------------------------------------
-  // 7. Confidence score
-  // ----------------------------------------------------------
-
-  let confidence = 70;
-
-  if (recentScores.length >= 3) {
-    confidence += 10;
-  }
-
-  if (engagement >= 80) {
-    confidence += 10;
-  }
-
-  confidence = Math.min(confidence, 95);
-
-  // ----------------------------------------------------------
-  // FINAL ADAPTIVE OUTPUT
-  // ----------------------------------------------------------
 
   return {
-    activityType,
-    difficulty,
-    suggestedTime: bestTime,
-    assistanceLevel,
-
-    strongestArea,
-    weakestArea,
-
-    recentAverage,
-
-    confidence,
-
-    reason,
-
-    generatedAt: new Date().toISOString(),
+    performanceScore,
+    performanceBand,
+    accuracy,
+    hints,
+    time,
+    historyCount: history.length,
   };
+}
+
+export function generateAdaptivePlan(result, history = []) {
+  const analysis = analyzePerformance(result, history);
+
+  let difficulty = result?.difficulty || "easy";
+  let activity = "Memory Game";
+  let reason = "";
+
+  if (analysis.performanceBand === "strong") {
+    difficulty = increaseDifficulty(difficulty);
+
+    activity =
+      result?.category === "People"
+        ? "Pattern Recognition"
+        : "Family Memory Recall";
+
+    reason =
+      "Strong recent performance detected. Increasing cognitive challenge gradually.";
+  } else if (analysis.performanceBand === "needs_support") {
+    difficulty = decreaseDifficulty(difficulty);
+
+    activity = "Family Memory Recall";
+
+    reason =
+      "Recent performance suggests a higher cognitive load. Returning to familiar-memory activities with gentler difficulty.";
+  } else {
+    difficulty = result?.difficulty || "medium";
+
+    activity =
+      result?.category === "People"
+        ? "Family Memory Recall"
+        : "Memory Game";
+
+    reason =
+      "Performance is stable. Maintaining a similar challenge while reinforcing familiar memories.";
+  }
+
+  return {
+    activity,
+    difficulty,
+    performanceScore: analysis.performanceScore,
+    performanceBand: analysis.performanceBand,
+    reason,
+    recommendedTime:
+      analysis.performanceBand === "strong"
+        ? "10–15 min"
+        : "5–10 min",
+  };
+}
+
+function increaseDifficulty(current) {
+  const index = ACTIVITY_LEVELS.indexOf(current);
+
+  if (index === -1) return "medium";
+
+  return ACTIVITY_LEVELS[Math.min(index + 1, ACTIVITY_LEVELS.length - 1)];
+}
+
+function decreaseDifficulty(current) {
+  const index = ACTIVITY_LEVELS.indexOf(current);
+
+  if (index === -1) return "easy";
+
+  return ACTIVITY_LEVELS[Math.max(index - 1, 0)];
 }

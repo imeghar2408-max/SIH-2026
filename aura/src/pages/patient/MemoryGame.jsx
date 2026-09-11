@@ -236,7 +236,7 @@ function MemoryGame({ setCurrentView }) {
 
           <div className="flex items-center gap-2 text-[#0f3e3a]">
             <Brain size={24} />
-            <span className="font-bold">AURA Memory Game</span>
+            <span className="font-bold">SMRITI Memory Game</span>
           </div>
         </div>
 

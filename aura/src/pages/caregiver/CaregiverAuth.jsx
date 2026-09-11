@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 const SARAH_ACCOUNT = {
-  email: "sarah.jenkins@aura.org",
+  email: "sarah.jenkins@smriti.org",
   password: "Sarah@123",
   name: "Sarah Jenkins",
 };
@@ -64,7 +64,7 @@ export default function CaregiverAuth({ onSarahLogin, onBack }) {
             </div>
 
             <h1 className="text-3xl font-bold mb-4">
-              AURA Caregiver Portal
+              SMRITI Caregiver Portal
             </h1>
 
             <p className="text-white/75 text-sm leading-6">
@@ -103,7 +103,7 @@ export default function CaregiverAuth({ onSarahLogin, onBack }) {
               </p>
 
               <p>Sarah Jenkins</p>
-              <p>sarah.jenkins@aura.org</p>
+              <p>sarah.jenkins@smriti.org</p>
               <p>Sarah@123</p>
             </div>
 
@@ -137,7 +137,7 @@ export default function CaregiverAuth({ onSarahLogin, onBack }) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="sarah.jenkins@aura.org"
+                  placeholder="sarah.jenkins@smriti.org"
                   className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#0f3e3a]"
                   required
                 />

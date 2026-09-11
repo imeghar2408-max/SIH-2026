@@ -274,7 +274,7 @@ function Vault({ setCurrentView }) {
 
             <p className="mt-2 text-sm leading-6 text-slate-600">
               Caregivers can add familiar people, places, objects and
-              meaningful memories. AURA can later use this information
+              meaningful memories. SMRITI can later use this information
               in personalized recognition and recall activities for Asha.
             </p>
 
